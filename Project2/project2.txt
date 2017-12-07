@@ -1,0 +1,135 @@
+Newton Method (used for theory)
+
+%%Nicole Nutter
+%%Project 2
+% Rootfinder for crystal growth
+% Goal: Find the equilibria
+%initial guess
+x0=0.2;
+%maximum number of iterations performed
+maxIT=25;
+%tolerance for testing convergence
+TOL=1.e-16;
+%call rootfinder
+Newton1D(x0,TOL,maxIT)
+==========================================================
+Solution: (for larger crystal)
+
+#n xn F(xn)
+1 1.000000e-01 1.382829e-07
+2 9.534196e-02 6.480880e-09
+3 9.510126e-02 1.677199e-11
+4 9.510063e-02 1.133173e-16
+5 9.510063e-02 0
+6 9.510063e-02 0
+DONE: root = 9.510063e-02 and F = 0 in 6 iters
+===========================================================
+NewtonID Subfunction
+
+function [r]=Newton1D(x0,TOL,maxIT)
+xn = x0;
+dx = 1000;
+fprintf('#n xn F(xn)\n')
+for n=1:maxIT
+    [Fn,DFn]=FCN(xn);
+    fprintf('%d %d %d\n',n,xn,Fn)
+    if abs(dx)<TOL
+        if abs(Fn)<TOL
+        fprintf('DONE: root = %d and F = %d in %d iters\n',xn,Fn,n)
+        break
+    else 
+        fprintf('STUCK!: dx<TOL BUT residual = %d > TOL\n',Fn)
+        break
+        end
+    else
+        dx = -Fn./DFn;
+        xn = xn + dx;
+    end
+end
+if n==maxIT
+    fprintf('BAD: reached maxIT!\n')
+end
+==============================================================
+FCN Subfunction
+
+function [Fn,DFn]=FCN(xn)
+%Computes values of F(xn),F'(xn) for newton rootfinder using previous xn
+m=1.e-3;
+cs=7.52e-7;
+ga=4.e-3;
+xs=0.09490505;
+cn=1.05*cs;
+c1=cn+m*xs^3;
+% mu*x^3 + (c*)*exp( gamma/x ) = c1 where   c1 = c0 + ?*(x*)^3
+Fn=m.*xn.^3+cs.*exp(ga./xn)-c1;
+%  3*mu*x^2 + (c*)*-gamma/x^2*exp( gamma/x ) = c1
+DFn=3.*m.*xn.^2-cs*ga*exp(ga./xn)./(xn.^2);
+end
+==============================================================
+Euler Method
+
+%Nicole Nutter
+%Euler scheme, main function
+%Used to numerically determine growth of crystals in Ostwald Ripening
+t0=0;
+xs = [0.05,0.09];
+tend = 0.2;
+Nsteps = 10000;
+dt = (tend-t0)/Nsteps;
+xn = xs;
+tn=t0;
+fid = fopen('values.txt','w');
+for n=1:Nsteps
+   fprintf(fid,'%6.8f  %12.8f %18.8f\n',tn,xn(1),xn(2));
+        [xn]=FCNEuler(tn,xn,xs,dt);
+        tn=t0+n*dt;
+     if xn(1)<=0
+        break
+         %xn(1)=0;
+     end
+end
+fclose(fid);
+xn
+tn
+=================================================================
+FCNEuler Subfunction
+
+function [xn]=FCNEuler(tn,xn,xs,dt)
+%perform Euler scheme on IVP DE
+m=1.e-3;
+cs=7.52e-7;
+ga=4.e-3;
+cn=1.05*cs;
+k=5.e7;
+nn=1;
+q=0;
+j=length(xs);
+if j == 1
+    cT=cn+m.*xs.^3 - m.*xn.^3;
+else
+for nn=1:j
+q=q+m.*xs(nn).^3 - m.*xn(nn).^3;
+nn=nn+1;
+end
+cT=cn+q;
+end
+cL=cs.*exp(ga./xn);
+g=1;
+d=1;
+if cT>cL
+    f=k.*(cT-cL).^g;
+else
+    f=-k.*(cL-cT).^d;
+end
+xn=xn+dt*f;
+
+#n xn F(xn)
+1 1.000000e-01 1.382901e-07
+2 9.534172e-02 6.481553e-09
+3 9.510099e-02 1.677561e-11
+4 9.510036e-02 1.133669e-16
+5 9.510036e-02 2.117582e-22
+6 9.510036e-02 0
+DONE: root = 9.510036e-02 and F = 0 in 6 iters
+0.094904782
+

@@ -1,0 +1,165 @@
+1.a. (MM=8, factor=0.98)
+Done at t=3.062500e+00, nsteps=40
+Max error=1.625596e-02
+====================================
+1.b. (MM=8, factor=0.90)
+Done at t=3.023438e+00, nsteps=43
+Max error=4.122302e-03
+====================================
+2. (MM=16, factor=0.90)
+Done at t=3.005859e+00, nsteps=171
+Max error=1.034066e-03
+====================================
+3.a.i (MM=32, factor=0.90)
+Done at t=3.001465e+00, nsteps=683
+Max error=2.585397e-04
+====================================
+3.a.ii (MM=32, factor=0.99)
+Done at t=3.001904e+00, nsteps=621
+Max error=2.972356e-04
+====================================
+3.b.i (MM=64, factor=0.90)
+Done at t=3.000366e+00, nsteps=2731
+Max error=6.465149e-05
+====================================
+3.b.ii (MM=64, factor=0.99)
+Done at t=3.000696e+00, nsteps=2483
+Max error=7.429744e-05
+====================================
+4.a. (MM=32, factor=1.00)
+Done at t=3.002930e+00, nsteps=615
+Max error=1.724077e-02
+====================================
+4.b (MM=32, factor=1.01)
+Done at t=3.003369e+00, nsteps=609
+Max error=2.993739e+03
+====================================
+4.c (MM=32, factor=1.10)
+Done at t=3.002441e+00, nsteps=559
+Max error=3.340942e+42
+====================================
+Main code
+%%Nicole Nutter
+%%Lab 7
+%%Diffusion Numerical Scheme
+
+%read in initial data
+dat
+
+%call for the length array
+[M,x,dx] = XMSH(a,b,MM);
+
+%set timestep
+dtexpl=dx*dx/(2*D);  %normal timestep
+dt=factor*dtexpl;    %factor<1 increases stability
+
+%initialize numerical scheme
+[U]=INIT(M);
+nsteps=0;
+time=0.0;
+tout=max(dt,dtout);
+
+%start of time stepping
+for nsteps=1:Nmax
+    time=time+dt;
+    [J,U]=FLUX(U,x,M,b,D,time);
+    [U]=PDE(U,J,M,dt,dx);
+    if time>=tout
+        [ERR, uEXACT]=COMPARE(U,time,D,M,x,b);
+        [fid]=OUTPUT(time,nsteps,ERR,U,x,uEXACT,M);
+        tout=tout+dtout;
+    end
+    if time>=tend
+             fclose(fid);
+        
+        %print final
+        fprintf('Done at t=%d, nsteps=%d\n',time,nsteps);
+        fprintf('Max error=%d',ERR);
+        return
+    end
+end
+if nsteps == Nmax
+    fprintf('Out of timesteps! Need bigger Nmax!')
+end
+========================================================
+dat.m
+MM = 32;  tend=3. ;  dtout=1. ;  Nmax=1000; factor=1.10 ;  D = 0.1 ;  a=0.0 ; b=1.0;
+========================================================
+XMSH
+function [M,x,dx] = XMSH(a,b,MM)
+%Creates a mesh for length of object diffusing over
+
+M=(b-a)*MM;
+dx=1/MM;
+
+x=zeros(1,M+2);
+x(1) = a;
+x(2) = a+dx/2;
+
+for i=3:M+1
+   x(i)=x(2)+(i-2)*dx;
+end
+
+x(M+2)=b;
+=======================================================
+INIT
+function [U]=INIT(M)
+%Initialize U and set boundary values
+
+U=zeros(1,M+2);
+end
+=======================================================
+FLUX
+function [J,U]=FLUX(U,x,M,b,D,time)
+%Initialize flux over the body for time stepping
+
+J=zeros(1,M+1);
+U(1)=1;
+U(M+2)=1-erf(0.5*b/sqrt(D*time));
+
+for i=2:M+2
+    J(i-1) = -D*(U(i)-U(i-1))/(x(i)-x(i-1));
+end
+end
+=======================================================
+PDE
+function [U]=PDE(U,J,M,dt,dx)
+ %Updates Ui for each time value
+ 
+for i=2:M+1
+    U(i)=U(i)+dt/dx*(J(i-1)-J(i));
+end
+
+end
+=======================================================
+COMPARE
+function [ERR, uEXACT]=COMPARE(U,time,D,M,x,b)
+%Compares the numerical to the exact value
+ERR=0.0;
+
+%Start uEXAC
+uEXACT=zeros(1,M+2);
+uEXACT(1)=1;
+uEXACT(M+2)=1-erf(0.5*b/sqrt(D*time));
+
+for i=2:M+1
+uEXACT(i)=1-erf(x(i)/(2*sqrt(D*time)));
+ERRi=abs(U(i)-uEXACT(i));
+ERR=max(ERRi,ERR);
+end
+
+end
+========================================================
+OUTPUT
+function [fid]=OUTPUT(time,nsteps,ERR,U,x,uEXACT,M)
+%Outputs profile to file
+
+fid = fopen('prof.txt','w')
+fprintf('Profile at this time %d, nsteps=%d\n',time,nsteps)
+fprintf('Error up to this point=%d\n',ERR)
+
+for i=1:M+2
+fprintf(fid,'%6.2f  %12.2f %16.2f\n',x(i),U(i),uEXACT(i));
+end
+
+end

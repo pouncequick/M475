@@ -1,0 +1,79 @@
+Math 475 Lab3: Nicole Nutter, 25/1/17
+=============================================
+Input 1: x0=1, Output 1: DONE: root = 1.500000e+00 and F = 0 in 7 iters
+
+Input 2: x0=-1, Output 2: DONE: root = 2.700000e+00 and F = 1.776357e-15 in 10 iters
+
+Input 3: x0=-4, Output 3: DONE: root = -3 and F = 5.329071e-15 in 7 iters
+
+For this lab I had to raise the maximum number of iterations because these roots took
+more iterations to find in double precision than they did in Lab 2.  Some start values
+like -1 to find the root 2.7 yield higher numbers of iterations than others. Starting with
+an initial value of 4 yielded 2.7 in only 7 iters.
+
+a) Is -3 an exact root? Yes.
+
+b) Did your solver find -3 as an exact root? No. It reached max iterations. When tolerance 
+was changed to 10^-15 it got stuck.
+
+c) How do you know it's an exact root? Because when -3 is plugged into the equation 
+in my calculator the result is zero. The graph also crosses the x axis at or near -3. 
+Wolfram Alpha's root finder also yields -3 as a root.
+
+d) How could you increase accuracy? I simply changed the tolerance to 10^-14 since there 
+seemed to be some error with the accuracy after 10^-15. Matlab does not recognize 2.7 and -3
+as exact roots for the equation. That made it work.
+
+e) 1.5 and 2.7. My solver found 1.5 but also got stuck at 2.7. Raising the tolerance helped 
+both of these roots to be found.
+=============================================
+Code used: (some changes were made according to feedback)
+
+main function
+%%Nicole Nutter
+%%Lab 2
+% Newton rootfinder main program
+% Goal: solve F(x)=0
+%initial guess
+x0=1;
+%maximum number of iterations performed
+maxIT=25;
+%tolerance for testing convergence
+TOL=10^-14;
+%call rootfinder
+Newton1D(x0,TOL,maxIT)
+
+Newton1D function
+function [r]=Newton1D(x0,TOL,maxIT)
+xn = x0;
+dx = 1000;
+fprintf('#n xn F(xn)\n')
+for n=1:maxIT
+    [Fn,DFn]=FCN(xn);
+    fprintf('%d %d %d\n',n,xn,Fn)
+    if abs(dx)<TOL
+        if abs(Fn)<TOL
+        fprintf('DONE: root = %d and F = %d in %d iters\n',xn,Fn,n)
+        break
+    else 
+        fprintf('STUCK!: dx<TOL BUT residual = %d > TOL\n',Fn)
+        break
+        end
+    else
+        dx = -Fn./DFn;
+        xn = xn + dx;
+    end
+end
+if n==maxIT
+    fprintf('BAD: reached maxIT!\n')
+end
+
+FCN subfunction
+function [Fn,DFn]=FCN(xn)
+%Computes values of F(xn),F'(xn) for newton rootfinder using previous xn
+x=xn;
+%Lab 2: F(x) = x2 - 3
+%Lab 3: F(x) = x3 - 1.2x2 - 8.55x + 12.15
+Fn=x.^3-1.2.*x.^2-8.55.*x+12.15;
+DFn=3.*x.^2-2.4.*x-8.55;
+end

@@ -1,0 +1,1 @@
+MM = 32;  tend=4. ;  dtout=2. ;  Nmax=10000; factor=1. ;  D = 0.5 ; V = 5.;  a=-2.0 ; b=30.;

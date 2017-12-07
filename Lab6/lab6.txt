@@ -1,0 +1,63 @@
+Nicole Nutter
+Lab 6
+Euler Scheme for Systems of ODE's
+=======================================
+N=1000:
+Input:
+t0=0;
+y10=1;
+y20=0;
+tend=1;
+Nsteps=1000;
+dt=(tend-t0)/Nsteps;
+Yn1=y10;
+Yn2=y20;
+Y1(1)=1.5423
+ERRmax=4.0347e-04
+=======================================
+N=5000:
+Input:
+t0=0;
+y10=1;
+y20=0;
+tend=1;
+Nsteps=5000;
+dt=(tend-t0)/Nsteps;
+Yn1=y10;
+Yn2=y20;
+Y1(1)=1.5429
+ERRmax=8.0725e-05
+=======================================
+Main program:
+%Lab 6
+%Euler scheme for systems, main function
+t0=0;
+y10=1;
+y20=0;
+tend=1;
+Nsteps=5000;
+dt=(tend-t0)/Nsteps;
+Yn1=y10;
+Yn2=y20;
+tn=t0;
+ERRn=0;
+ERRmax=0;
+%fprintf('n   tn   Yn1   ERRn\n')
+for n=1:Nsteps
+   [Yn1,Yn2,ERRn,ERRmax]=FCN(tn,Yn1,Yn2,dt,ERRmax);
+   %fprintf('%d   %d   %d   %d\n',n,tn,Yn1,ERRn)
+   tn=t0+n*dt;
+end
+
+Function:
+function [Yn1,Yn2,ERRn,ERRmax]=FCN(tn,Yn1,Yn2,dt,ERRmax)
+%perform Euler scheme on system of IVP DE
+f1=Yn1;
+f2=Yn2;
+Yn1=Yn1+dt*f2;
+Y1ext=cosh(tn);
+Yn2=Yn2+dt*f1;
+Y2ext=sinh(tn);
+ERRn=abs(Yn1-Y1ext);
+ERRmax=max([ERRn,ERRmax]);
+ERRmax

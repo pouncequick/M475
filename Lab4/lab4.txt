@@ -1,0 +1,56 @@
+For x*=0.05:
+x0=0.02;
+DONE: root = 2.167360e-02 and F = -2.117582e-22 in 6 iters
+x0=0.04;
+DONE: root = 4.534792e-02 and F = 0 in 7 iters
+Therefore, since 2.167360e-02<4.534792e-02<0.05, x1<x2<x*
+
+If the initial crystal size is above the larger equilibrium value, it will 
+decrease in size trending towards the size of the x2 equilibrium value.
+
+For x*=0.0975:
+x0=0.02;
+DONE: root = 4.847214e-03 and F = -6.352747e-22 in 10 iters
+x0=0.05;
+DONE: root = 9.771616e-02 and F = 0 in 9 iters
+Therefore, since 4.847214e-03<0.0975<9.771616e-02, x1<x*<x2
+
+If the initial crystal size is below the larger equilibrium value, it will 
+increase in size trending towards the size of the x2 equilibrium value.
+
+For x*=0.08, mu=1.e-5:
+x0=0.05;
+DONE: root = 8.351058e-02 and F = 0 in 9 iters
+x0=0.2;
+DONE: root = 1.197713e-01 and F = 0 in 9 iters
+Therefore, since 0.08<8.351058e-02<1.197713e-01, x*<x1<x2
+
+If the initial crystal size is below the smaller equilibrium value, it will
+decrease until it reaches zero at the dillution time
+=============================================================================
+%%Nicole Nutter
+%%Lab 4
+% Rootfinder for crystal growth
+% Goal: Find the equilibria
+%initial guess
+x0=0.02;
+%maximum number of iterations performed
+maxIT=50;
+%tolerance for testing convergence
+TOL=1.e-16;
+%call rootfinder
+Newton1D(x0,TOL,maxIT)
+=============================================================================
+function [Fn,DFn]=FCN(xn)
+%Computes values of F(xn),F'(xn) for newton rootfinder using previous xn
+m=1.e-5;
+cs=7.52e-7;
+g=4.e-3;
+cn=1.05*cs;
+xs=0.08;
+c1=cn+m*xs^3;
+% mu*x^3 + (c*)*exp( gamma/x ) = c1 where   c1 = c0 + ?*(x*)^3
+Fn=m.*xn.^3+cs.*exp(g./xn)-c1;
+%  3*mu*x^2 + (c*)*-gamma/x^2*exp( gamma/x ) = c1
+DFn=3*m.*xn.^2-cs*g*exp(g./xn)./(xn.^2);
+end
